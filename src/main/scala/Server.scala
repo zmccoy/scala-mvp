@@ -2,6 +2,7 @@ package com.zmccoy
 
 import cats.effect._
 import cats.implicits._
+import com.zmcccoy.DatabaseOps
 import org.http4s.HttpRoutes
 import org.http4s.syntax._
 import org.http4s.dsl.Http4sDsl
@@ -14,7 +15,8 @@ object Server {
 
   def serve[F[_]: ConcurrentEffect : ContextShift : Timer]: Stream[F, ExitCode] = {
     for {
-      exitCode <- createPingRoute[F](routes)
+      transactor <- Stream.resource(DatabaseOps.createTransactor())
+      exitCode   <- createPingRoute[F](routes)
     } yield {
       exitCode
     }
@@ -22,7 +24,7 @@ object Server {
   }
 
   /*
-  TODO:  Add DB access, add new routes, add health server , add config, add logger, add prometheus, add natchez, add dump of threads on end
+  TODO:  Add trait that uses DB, add new routes, add health server , add config, add logger, add prometheus, add natchez, add dump of threads on end
   */
 
   //TODO: Move out these route
