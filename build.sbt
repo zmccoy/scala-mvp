@@ -10,7 +10,7 @@ val Log4CatsVersion = "1.0.1"
 lazy val root = (project in file("."))
   .settings(
     name := "server",
-    scalaVersion := "2.13.0",
+    scalaVersion := "2.13.1",
     organization := "com.zmccoy",
     libraryDependencies ++= Seq(
       "org.http4s"        %% "http4s-blaze-server" % Http4sVersion,
