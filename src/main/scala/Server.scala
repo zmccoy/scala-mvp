@@ -9,13 +9,21 @@ import org.http4s.dsl.Http4sDsl
 import org.http4s.implicits._
 import org.http4s.server.blaze._
 import fs2.Stream
+import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
+import org.http4s.client.blaze.BlazeClientBuilder
+
+import scala.concurrent.ExecutionContext.global
+
 
 
 object Server {
 
   def serve[F[_]: ConcurrentEffect : ContextShift : Timer]: Stream[F, ExitCode] = {
     for {
+      logger     <- Stream.eval(Slf4jLogger.create)
+      _          <- Stream.eval(logger.info("Starting the application"))
       transactor <- Stream.resource(DatabaseOps.createTransactor())
+      client     <- Stream.resource(BlazeClientBuilder[F](global).resource)
       exitCode   <- createPingRoute[F](routes)
     } yield {
       exitCode
