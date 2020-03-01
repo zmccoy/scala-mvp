@@ -8,6 +8,7 @@ val Log4CatsVersion = "1.0.1"
 val PureConfigVersion = "0.12.2"
 
 
+
 lazy val root = (project in file("."))
   .settings(
     name := "server",

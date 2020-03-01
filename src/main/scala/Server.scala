@@ -4,6 +4,7 @@ import cats.effect._
 import cats.implicits._
 import com.typesafe.config.ConfigFactory
 import com.zmcccoy.DatabaseOps
+import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 import org.http4s.HttpRoutes
 import org.http4s.syntax._
 import org.http4s.dsl.Http4sDsl
