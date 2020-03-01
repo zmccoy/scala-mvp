@@ -13,8 +13,6 @@ import org.http4s.server.blaze._
 import fs2.Stream
 import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 import org.http4s.client.blaze.BlazeClientBuilder
-import pureconfig._
-import pureconfig.generic.auto._
 
 import scala.concurrent.ExecutionContext.global
 
@@ -24,7 +22,7 @@ object Server {
 
   def serve[F[_]: ConcurrentEffect : ContextShift : Timer]: Stream[F, ExitCode] = {
     for {
-      config     <- Stream.eval(loadConfig)
+      config     <- Stream.eval(Configuration.loadConfig[F])
       logger     <- Stream.eval(Slf4jLogger.create)
       _          <- Stream.eval(logger.info("Starting the application"))
       transactor <- Stream.resource(DatabaseOps.createTransactor(config))
@@ -57,11 +55,4 @@ object Server {
       .serve
   }
 
-  final case class DoobieConfig(connectECSize: Int)
-  final case class HConfig(url: String, driverClassName: String, user: String, pass: String)
-  final case class AppConfig(doobie: DoobieConfig, hikari: HConfig)
-  def loadConfig[F[_]: Sync]: F[AppConfig] = Sync[F].delay {
-      val config = ConfigFactory.load()
-      pureconfig.ConfigSource.fromConfig(config).at("com.zmccoy").loadOrThrow[AppConfig]
-    }
 }
