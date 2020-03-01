@@ -1,7 +1,7 @@
 package com.zmcccoy
 
 import cats.effect._
-import com.zmccoy.Server.AppConfig
+import com.zmccoy.Models.AppConfig
 import doobie._
 import doobie.implicits._
 import doobie.hikari._
