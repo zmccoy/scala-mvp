@@ -13,6 +13,10 @@ import org.http4s.server.blaze._
 import fs2.Stream
 import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 import org.http4s.client.blaze.BlazeClientBuilder
+import org.http4s.client.middleware.Metrics
+import org.http4s.server.middleware.{Metrics => ServerMetrics}
+import org.http4s.metrics.MetricsOps
+import org.http4s.metrics.prometheus.Prometheus
 
 import scala.concurrent.ExecutionContext.global
 
@@ -26,8 +30,11 @@ object Server {
       logger     <- Stream.eval(Slf4jLogger.create)
       _          <- Stream.eval(logger.info("Starting the application"))
       transactor <- Stream.resource(DatabaseOps.createTransactor(config))
+      metricOps  <- Stream.resource(prometheusMetricOps)
       client     <- Stream.resource(BlazeClientBuilder[F](global).resource)
-      exitCode   <- createPingRoute[F](routes)
+      instClient = Metrics[F](metricOps)(client) //Add classifier for either of these?
+      instRoutes = ServerMetrics[F](metricOps)(routes)
+      exitCode   <- startServer[F](instRoutes)
     } yield {
       exitCode
     }
@@ -47,8 +54,14 @@ object Server {
     }
   }
 
+  def prometheusMetricOps[F[_]: Sync]: Resource[F, MetricsOps[F]] = {
+    for {
+      cr <- Prometheus.collectorRegistry
+      mo <- Prometheus.metricsOps(cr)
+    } yield mo
+  }
 
-  def createPingRoute[F[_]: ConcurrentEffect : Timer](routes: HttpRoutes[F]): Stream[F, ExitCode] = {
+  def startServer[F[_]: ConcurrentEffect : Timer](routes: HttpRoutes[F]): Stream[F, ExitCode] = {
     BlazeServerBuilder[F]
       .bindHttp(8080, "localhost")
       .withHttpApp(routes.orNotFound)
