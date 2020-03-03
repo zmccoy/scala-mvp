@@ -1,14 +1,12 @@
-package com.zmcccoy
+package com.zmccoy
 
 import cats.effect._
-import com.zmccoy.Models.AppConfig
-import doobie._
-import doobie.implicits._
 import doobie.hikari._
 import doobie.util.ExecutionContexts
+import org.flywaydb.core.Flyway
+import cats.implicits._
 
 object DatabaseOps {
-  //TODO: Pass in configuration, write up explanation comments
   def createTransactor[F[_] : Async : ContextShift](config: AppConfig): Resource[F, HikariTransactor[F]] = {
     for {
       connectEC  <- ExecutionContexts.fixedThreadPool[F](config.doobie.connectECSize)
@@ -21,5 +19,18 @@ object DatabaseOps {
         connectEC,
         Blocker.liftExecutionContext(transactEC))
     } yield transactor
+  }
+
+  def runMigrations[F[_] : Sync](config: AppConfig): F[Unit] = {
+    Sync[F].delay {
+      val flyway = Flyway.configure
+        .locations("src/main/scala/resources/migration")
+        .validateOnMigrate(true)
+        .dataSource(config.hikari.url, config.hikari.user, config.hikari.pass)
+        .load
+
+      flyway.baseline()
+      flyway.migrate()
+    }.void
   }
 }

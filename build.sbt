@@ -6,6 +6,7 @@ val ScalaTest = ""
 val DoobieVersion = "0.8.8"
 val Log4CatsVersion = "1.0.1"
 val PureConfigVersion = "0.12.2"
+val FlyWayVersion = "6.2.3"
 
 
 
@@ -26,6 +27,8 @@ lazy val root = (project in file("."))
       "org.tpolecat"          %% "doobie-postgres"           % DoobieVersion,
       "io.chrisdavenport"     %% "log4cats-slf4j"            % Log4CatsVersion,
       "com.github.pureconfig" %% "pureconfig"                % PureConfigVersion,
+      "org.flywaydb"           %  "flyway-core"              % FlyWayVersion,
+
     ),
     addCompilerPlugin("org.typelevel" %% "kind-projector"     % "0.10.3"),
     addCompilerPlugin("com.olegpy"    %% "better-monadic-for" % "0.3.0")

@@ -2,9 +2,6 @@ package com.zmccoy
 
 import cats.effect._
 import cats.implicits._
-import com.typesafe.config.ConfigFactory
-import com.zmcccoy.DatabaseOps
-import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 import org.http4s.HttpRoutes
 import org.http4s.syntax._
 import org.http4s.dsl.Http4sDsl
@@ -32,8 +29,8 @@ object Server {
       transactor <- Stream.resource(DatabaseOps.createTransactor(config))
       metricOps  <- Stream.resource(prometheusMetricOps)
       client     <- Stream.resource(BlazeClientBuilder[F](global).resource)
-      instClient = Metrics[F](metricOps)(client) //Add classifier for either of these?
-      instRoutes = ServerMetrics[F](metricOps)(routes)
+      instClient = Metrics[F](metricOps)(client)
+      instRoutes = ServerMetrics[F](metricOps)(pingRoute)
       exitCode   <- startServer[F](instRoutes)
     } yield {
       exitCode
@@ -41,11 +38,11 @@ object Server {
   }
 
   /*
-  TODO:  Add trait that uses DB, add new routes, add health server, add prometheus, add natchez, add dump of threads on end
+  TODO: add new routes, add health server, add natchez
   */
 
   //TODO: Move out these route
-  def routes[F[_]: Sync]() = {
+  def pingRoute[F[_]: Sync]() = {
     val dsl = Http4sDsl[F]
     import dsl._
 
