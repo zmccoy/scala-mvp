@@ -24,7 +24,7 @@ object DatabaseOps {
   def runMigrations[F[_] : Sync](config: AppConfig): F[Unit] = {
     Sync[F].delay {
       val flyway = Flyway.configure
-        .locations("src/main/scala/resources/migration")
+        .locations("src/main/resources/migration")
         .validateOnMigrate(true)
         .dataSource(config.hikari.url, config.hikari.user, config.hikari.pass)
         .load
